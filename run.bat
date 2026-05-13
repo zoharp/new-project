@@ -1,89 +1,86 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM ============================================================
-REM [Project Name] - Full Stack Runner
-REM Starts Backend (FastAPI) + Frontend (React)
-REM Opens browser automatically
-REM ============================================================
-
-title [Project Name]
+title Orcanos Performance Tool
 
 echo.
 echo ============================================================
-echo  [Project Name]
+echo  Orcanos Performance Tool
 echo ============================================================
 echo.
 
-REM Define ports
 set BACKEND_PORT=8000
 set FRONTEND_PORT=5173
-set FRONTEND_URL=http://localhost:%FRONTEND_PORT%
 set BACKEND_URL=http://localhost:%BACKEND_PORT%
+set FRONTEND_URL=http://localhost:%FRONTEND_PORT%
 
-REM Change to project root
 cd /d "%~dp0"
 
-REM Kill any existing backend/frontend processes
-echo [*] Cleaning up existing processes...
-powershell -NoProfile -Command "Get-Process -Id (Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue).OwningProcess -ErrorAction SilentlyContinue | Stop-Process -Force" >nul 2>&1
-powershell -NoProfile -Command "Get-Process -Id (Get-NetTCPConnection -LocalPort %FRONTEND_PORT% -State Listen -ErrorAction SilentlyContinue).OwningProcess -ErrorAction SilentlyContinue | Stop-Process -Force" >nul 2>&1
+REM ── Kill anything already on these ports ──────────────────────
+echo [*] Stopping any previous processes...
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" 2>nul
+powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort %FRONTEND_PORT% -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }" 2>nul
+timeout /t 2 /nobreak >nul
 
-REM Clear Python bytecode cache
-echo [*] Clearing Python cache...
-if exist backend\__pycache__ rmdir /s /q backend\__pycache__
+REM ── Clear Python cache ────────────────────────────────────────
+if exist backend\__pycache__ rmdir /s /q backend\__pycache__ 2>nul
 
-ping -n 3 127.0.0.1 >nul
+REM ── Start Backend ─────────────────────────────────────────────
+echo [1/2] Starting backend on port %BACKEND_PORT%...
+start "Orcanos Backend" cmd /k "call .venv\Scripts\activate && python -m uvicorn backend.api:app --reload --port %BACKEND_PORT%"
 
-REM Start Backend
-echo [1/2] Starting FastAPI Backend on port %BACKEND_PORT%...
-start "[Project Name] Backend" cmd /k "call .venv\Scripts\activate && python -m uvicorn backend.api:app --reload"
-ping -n 4 127.0.0.1 >nul
+REM ── Wait for backend to respond ───────────────────────────────
+echo [*] Waiting for backend...
+set /a tries=0
+:wait_backend
+set /a tries+=1
+if %tries% gtr 30 (
+    echo [!] Backend did not start. Check the backend window for errors.
+    pause
+    exit /b 1
+)
+powershell -NoProfile -Command "if (Get-NetTCPConnection -LocalPort %BACKEND_PORT% -State Listen -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto wait_backend
+)
+echo [OK] Backend ready.
 
-REM Start Frontend
-echo [2/2] Starting React Frontend on port %FRONTEND_PORT%...
-cd frontend
-start "[Project Name] Frontend" cmd /k "npm run dev"
-cd ..
-ping -n 4 127.0.0.1 >nul
+REM ── Start Frontend ────────────────────────────────────────────
+echo [2/2] Starting frontend on port %FRONTEND_PORT%...
+start "Orcanos Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev"
 
-REM Wait for backend to be ready
-echo.
-echo [*] Waiting for backend to start...
-set "max_retries=30"
-set "retry_count=0"
-
-:check_backend
-if %retry_count% geq %max_retries% (
-    echo [!] Backend not ready after %max_retries% retries
+REM ── Wait for frontend to respond ──────────────────────────────
+echo [*] Waiting for frontend...
+set /a tries=0
+:wait_frontend
+set /a tries+=1
+if %tries% gtr 30 (
+    echo [!] Frontend did not start. Check the frontend window for errors.
     goto open_browser
 )
-ping -n 2 127.0.0.1 >nul
-curl -s %BACKEND_URL%/health >nul 2>&1
+powershell -NoProfile -Command "if (Get-NetTCPConnection -LocalPort %FRONTEND_PORT% -State Listen -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }" >nul 2>&1
 if errorlevel 1 (
-    set /a retry_count+=1
-    echo [*] Waiting... (!retry_count!/%max_retries%)
-    goto check_backend
+    timeout /t 1 /nobreak >nul
+    goto wait_frontend
 )
-echo [OK] Backend ready at %BACKEND_URL%
-
-ping -n 6 127.0.0.1 >nul
+echo [OK] Frontend ready.
 
 :open_browser
 echo.
-echo [*] Opening browser to %FRONTEND_URL%...
-start %FRONTEND_URL%
+echo [*] Opening browser...
+start "" "%FRONTEND_URL%"
 
 echo.
 echo ============================================================
-echo [OK] Application Started
+echo  App is running
+echo ============================================================
+echo  Frontend : %FRONTEND_URL%
+echo  Backend  : %BACKEND_URL%
+echo  API Docs : %BACKEND_URL%/docs
 echo ============================================================
 echo.
-echo Backend:   %BACKEND_URL%
-echo Frontend:  %FRONTEND_URL%
-echo API Docs:  %BACKEND_URL%/docs
-echo.
-echo Press Ctrl+C in the server windows to stop.
-echo ============================================================
+echo  Close this window or press Ctrl+C in either server
+echo  window to stop.
 echo.
 pause
