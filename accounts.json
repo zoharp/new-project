@@ -1,0 +1,15 @@
+{
+  "accounts": [
+    {
+      "name": "orcanos",
+      "url": "https://app.orcanos.com/orcanos/web/",
+      "password": "[ENCRYPTED - Run: python scripts/import_accounts.py to generate]",
+      "enabled": true
+    }
+  ],
+  "user": "orcanos.tech",
+  "thresholds": {
+    "warning": 3,
+    "critical": 10
+  }
+}
