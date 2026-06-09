@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage'
 import { Home } from './pages/Home'
 import { CallPage } from './pages/CallPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { AdminPage } from './pages/AdminPage'
 import { BranchingScreen } from './components/Call/BranchingScreen'
 import { PostCallCapture } from './components/Call/PostCallCapture'
 
@@ -56,6 +57,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminPage />
                   </ProtectedRoute>
                 }
               />

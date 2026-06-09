@@ -32,6 +32,9 @@ export function Header() {
                 <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
                   Dashboard
                 </Link>
+                <Link to="/admin" className="text-gray-600 hover:text-gray-900 font-medium">
+                  ⚙️ Admin
+                </Link>
               </nav>
             )}
           </div>

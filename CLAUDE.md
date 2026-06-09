@@ -60,11 +60,18 @@ Interactive web-based cold call script guide for Orcanos sales reps. Helps navig
    - ✅ CallHistory (table with call records)
    - ✅ CallDetailModal (view/edit/delete call details)
 
+6. **Admin Components** ✅
+   - ✅ AdminPage (manage scripts & resistance handlers)
+   - ✅ Edit Script Modal (edit step content, tips, timers, Path A/B)
+   - ✅ Edit Handler Modal (edit resistance handler responses)
+   - ✅ Live database updates
+
 6. **Pages** ✅
    - ✅ LoginPage (auth interface)
    - ✅ Home (start call screen with prospect/company fields)
    - ✅ CallPage (wraps CallScreen)
    - ✅ DashboardPage (wraps Dashboard)
+   - ✅ AdminPage (manage all scripts and handlers)
 
 7. **Database** ✅
    - ✅ Schema design (4 tables, 4 indexes)
@@ -96,6 +103,33 @@ Interactive web-based cold call script guide for Orcanos sales reps. Helps navig
 5. Phase 6: Styling & polish
 6. Phase 7: Testing & QA
 7. Phase 8: Deployment to Vercel
+
+---
+
+## Admin Panel Features
+
+The Admin Panel (`/admin`) allows authorized users to edit all call scripts, tips, and resistance handlers in real-time.
+
+### Edit Scripts
+- View all 7 call steps
+- Edit: title, goal, script text, delivery tip, timers (min/max)
+- For Step 4: Edit Path A and Path B content separately
+- Changes saved immediately to database
+- Live updates reflected in call screen next time script is loaded
+
+### Edit Resistance Handlers
+- View all 3 resistance handler templates
+- Edit: title and full response text
+- Changes saved immediately to database
+- Updates available in the Drawer during calls
+
+### How to Access
+1. Log in as any authenticated user
+2. Click "⚙️ Admin" in header navigation
+3. Select "Call Scripts" or "Resistance Handlers" tab
+4. Click "Edit" on any item
+5. Modal opens with all fields editable
+6. Save changes (updates database in real-time)
 
 ---
 
